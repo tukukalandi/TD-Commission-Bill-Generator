@@ -21,35 +21,28 @@ function Navigation() {
   const isAdmin = auth.currentUser?.email === 'tukukalandi@gmail.com';
 
   return (
-    <nav className="flex gap-1 overflow-x-auto">
+    <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
       <Link 
         to="/" 
-        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${isActive('/') || isActive('/create') ? 'bg-slate-50 text-red-700 border-t-2 border-red-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
+        className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium text-sm transition-colors whitespace-nowrap ${isActive('/') || isActive('/create') ? 'bg-slate-50 text-red-700 border-t-2 border-red-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
       >
         <FileText size={16} />
         New Bill
       </Link>
       <Link 
         to="/history" 
-        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${isActive('/history') ? 'bg-slate-50 text-red-700 border-t-2 border-red-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
+        className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium text-sm transition-colors whitespace-nowrap ${isActive('/history') ? 'bg-slate-50 text-red-700 border-t-2 border-red-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
       >
         <History size={16} />
         History
       </Link>
-      <Link 
-        to="/settings" 
-        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${isActive('/settings') ? 'bg-slate-50 text-red-700 border-t-2 border-red-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
-      >
-        <SettingsIcon size={16} />
-        Settings
-      </Link>
       {isAdmin && (
         <Link 
           to="/admin" 
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${isActive('/admin') ? 'bg-slate-50 text-indigo-700 border-t-2 border-indigo-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
+          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium text-sm transition-colors whitespace-nowrap ${isActive('/admin') ? 'bg-slate-50 text-indigo-700 border-t-2 border-indigo-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
         >
           <ShieldCheck size={16} />
-          Admin Portal
+          Admin
         </Link>
       )}
     </nav>
@@ -83,6 +76,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [authInitialized, setAuthInitialized] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = initAuth(
@@ -102,14 +96,21 @@ export default function App() {
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
+    setLoginError(null);
     try {
       const result = await googleSignIn();
       if (result) {
         setUser(result.user);
         setNeedsAuth(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login failed:', err);
+      // Specific check for iframe popup blocker error
+      if (err.code === 'auth/network-request-failed' || err.message?.includes('network-request-failed')) {
+        setLoginError('Login popup was blocked by your browser. This often happens inside preview iframes. Please click the "Open App" or "Share" link at the top to open this app in a new tab.');
+      } else {
+        setLoginError('An error occurred during sign in. Please try again.');
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -150,6 +151,18 @@ export default function App() {
             </svg>
             {isLoggingIn ? 'Signing in...' : 'Sign in with Google'}
           </button>
+
+          {loginError && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm text-left border border-red-200 mt-4">
+              <p className="font-semibold mb-1">Login Error</p>
+              <p>{loginError}</p>
+              {loginError.includes('new tab') && (
+                <a href={window.location.href} target="_top" rel="noreferrer" className="inline-block mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-center w-full transition-colors">
+                  Open App in New Tab
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -159,26 +172,39 @@ export default function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
         {/* Header */}
-        <header className="bg-red-700 text-white pt-4 px-6 shadow-md flex justify-between items-end sticky top-0 z-10">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <FileText className="text-yellow-400" />
-              <h1 className="text-xl font-bold tracking-tight">TD Commission Bill Generator</h1>
+        <header className="bg-red-700 text-white shadow-md sticky top-0 z-10 flex flex-col">
+          <div className="flex justify-between items-center p-3 sm:p-4 gap-2">
+            
+            {/* Left side: Title */}
+            <div className="flex items-center gap-3 min-w-0">
+               <div className="flex flex-col min-w-0">
+                  <h1 className="text-base sm:text-2xl font-bold tracking-tight leading-tight truncate sm:whitespace-normal">
+                    TD Commission Bill
+                  </h1>
+                  <span className="text-xs opacity-80 truncate block sm:hidden mt-0.5">{user?.email}</span>
+               </div>
             </div>
-            <Navigation />
+
+            {/* Right side: User, Signout, India Post */}
+            <div className="flex items-center gap-3 shrink-0">
+               <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-xs opacity-80">Signed in</span>
+                  <span className="text-sm font-semibold truncate max-w-[150px]">{user?.email}</span>
+               </div>
+               <button 
+                onClick={handleLogout}
+                className="text-xs bg-red-800 hover:bg-red-900 px-3 py-1.5 rounded transition font-medium border border-red-600 shadow-sm"
+              >
+                Sign out
+              </button>
+              <div className="bg-white p-1 rounded shadow-sm shrink-0">
+                <img src="https://upload.wikimedia.org/wikipedia/en/3/32/India_Post.svg" alt="India Post" className="h-8 sm:h-12 w-auto object-contain" />
+              </div>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-4 pb-2">
-            <div className="hidden sm:flex text-sm items-center gap-2">
-              <span className="opacity-75">Signed in as</span>
-              <span className="font-semibold">{user?.email}</span>
-            </div>
-            <button 
-              onClick={handleLogout}
-              className="text-xs bg-red-800 hover:bg-red-900 px-3 py-1.5 rounded transition"
-            >
-              Sign out
-            </button>
+
+          <div className="px-3 sm:px-4 overflow-x-auto flex-nowrap border-t border-red-800 pt-2 scrollbar-hide">
+            <Navigation />
           </div>
         </header>
 
@@ -192,6 +218,11 @@ export default function App() {
             <Route path="/view/:id" element={<EditViewLoader />} />
           </Routes>
         </main>
+
+        {/* Footer */}
+        <footer className="bg-red-700 py-4 mt-auto text-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+          <p className="text-sm text-red-50 font-medium">Prepared by Kalandi Charan Sahoo, PA, Dhenkanal RS SO</p>
+        </footer>
       </div>
     </BrowserRouter>
   );
