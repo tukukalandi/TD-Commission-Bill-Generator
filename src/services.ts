@@ -1,5 +1,5 @@
 import { db, auth } from './firebase';
-import { collection, doc, setDoc, getDoc, getDocs, query, where, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, query, where, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { TDBillDetails } from './types';
 
 // See standard error handler from skill
@@ -122,6 +122,59 @@ export async function getBillsFromFirestore(month?: string, year?: string): Prom
     handleFirestoreError(error, OperationType.LIST, 'bills');
     return [];
   }
+}
+
+export function subscribeToBillsFromFirestore(
+  month: string | undefined, 
+  year: string | undefined, 
+  onSnapshotCallback: (bills: TDBillDetails[]) => void, 
+  onErrorCallback: (error: Error) => void
+) {
+  if (!auth.currentUser) {
+    onSnapshotCallback([]);
+    return () => {}; // return empty unsubscribe
+  }
+  const isAdmin = auth.currentUser.email === 'tukukalandi@gmail.com';
+  
+  const q = isAdmin ? query(collection(db, 'bills')) : query(collection(db, 'bills'), where('userId', '==', auth.currentUser.uid));
+  
+  const unsubscribe = onSnapshot(q, (snap) => {
+    const bills = snap.docs.map(doc => {
+      const data = doc.data();
+      const entries = JSON.parse(data.entriesData || '[]');
+      return {
+        id: doc.id,
+        userId: data.userId,
+        bo: data.bo,
+        so: data.so,
+        ho: data.ho,
+        month: data.month,
+        year: data.year,
+        dateString: data.dateString,
+        entries: entries,
+        createdAt: data.createdAt,
+        status: data.status || 'Pending'
+      } as TDBillDetails;
+    });
+    
+    let filtered = bills;
+    if (month && month !== '') {
+      filtered = filtered.filter(b => b.month === month);
+    }
+    if (year && year !== '') {
+      filtered = filtered.filter(b => b.year === year);
+    }
+    
+    onSnapshotCallback(filtered.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)));
+  }, (error) => {
+    try {
+      handleFirestoreError(error, OperationType.LIST, 'bills');
+    } catch(e: any) {
+      onErrorCallback(e);
+    }
+  });
+
+  return unsubscribe;
 }
 
 export async function getUserSettings() {

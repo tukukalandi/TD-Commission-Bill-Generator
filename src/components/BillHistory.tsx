@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getBillsFromFirestore, deleteBill } from '../services';
+import { subscribeToBillsFromFirestore, deleteBill } from '../services';
 import { TDBillDetails } from '../types';
 import { Eye, Trash2, FileText, Search, Download, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,22 +13,27 @@ export default function BillHistory() {
   const [yearFilter, setYearFilter] = useState('');
   const navigate = useNavigate();
 
-  const loadBills = async () => {
-    setLoading(true);
-    const data = await getBillsFromFirestore(monthFilter, yearFilter);
-    setBills(data);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    loadBills();
+    setLoading(true);
+    const unsubscribe = subscribeToBillsFromFirestore(
+      monthFilter,
+      yearFilter,
+      (data) => {
+        setBills(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, [monthFilter, yearFilter]);
 
   const handleDelete = async (id?: string) => {
     if (!id) return;
     if (window.confirm('Are you sure you want to delete this bill?')) {
       await deleteBill(id);
-      loadBills();
     }
   };
 

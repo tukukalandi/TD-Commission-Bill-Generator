@@ -3,7 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { TDBillDetails } from './types';
 import { numberToWords } from './utils';
 
-export function downloadPDF(bill: TDBillDetails) {
+export function generatePDFDocument(bill: TDBillDetails) {
   const doc = new jsPDF();
   
   const totalDeposit = bill.entries.reduce((sum, e) => sum + (Number(e.depositAmount) || 0), 0);
@@ -25,9 +25,17 @@ export function downloadPDF(bill: TDBillDetails) {
   doc.setLineWidth(0.5);
   doc.line(60, 36, 150, 36);
 
+  let formattedDate = bill.dateString;
+  if (bill.dateString && bill.dateString.includes('-')) {
+    const [y, m, d] = bill.dateString.split('-');
+    if (y && y.length === 4) {
+      formattedDate = `${d}-${m}-${y}`;
+    }
+  }
+
   doc.setFontSize(10);
   doc.text(`For the Month Of: ${bill.month} ${bill.year}`, 14, 45);
-  doc.text(`Dated: ${bill.dateString}`, 196, 45, { align: 'right' });
+  doc.text(`Dated: ${formattedDate}`, 196, 45, { align: 'right' });
 
   // Table
   const tableData = bill.entries.map((entry, index) => [
@@ -37,7 +45,7 @@ export function downloadPDF(bill: TDBillDetails) {
     entry.depositorName,
     entry.depositAmount,
     entry.termOfDeposit,
-    entry.rateOfIncentive,
+    entry.rateOfIncentive ? `${entry.rateOfIncentive}%` : '',
     entry.incentiveAmount
   ]);
   
@@ -59,6 +67,7 @@ export function downloadPDF(bill: TDBillDetails) {
     head: [['SR NO', 'ACCOUNT NO', 'PR NO', 'NAME OF DEPOSITOR', 'DEPOSIT AMOUNT', 'TERM OF DEPOSIT', 'RATE OF INCENTIVE', 'INCENTIVE AMOUNT']],
     body: tableData,
     theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 1.5, minCellHeight: 7 },
     headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5, fontStyle: 'bold' },
     bodyStyles: { textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
     columnStyles: {
@@ -77,33 +86,49 @@ export function downloadPDF(bill: TDBillDetails) {
 
   const finalY = (doc as any).lastAutoTable.finalY || 150;
   
-  let yPos = finalY + 10;
+  let yPos = finalY + 8;
+  if (yPos > 220) {
+    doc.addPage();
+    yPos = 20;
+  }
+
   // Signatures & Certifications Area
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   
-  doc.text('Certified that all the above mentioned accounts are opened at Branch Office and not through any SAS agents.', 14, yPos);
-  yPos += 7;
-  doc.text('Certified that incentive for above mentioned accounts are not taken earlier.', 14, yPos);
-  yPos += 7;
-  doc.text(`Please give the acceptance of incentive amount RS :- ${totalIncentive}`, 14, yPos);
-  yPos += 7;
-  doc.text(`Rupees (In Words) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : ''}`, 14, yPos);
-  
-  yPos += 15;
-  doc.text('Signature of BPM _____________________ BO', 196, yPos, { align: 'right' });
-  
-  yPos += 10;
-  doc.text('Acceptance granted for the amount of RS :-', 14, yPos);
-  yPos += 10;
-  doc.text('Rupees (In Words) :- ____________________________________', 14, yPos);
-  doc.text('Signature of SPM _____________________ SO', 196, yPos, { align: 'right' });
+  doc.text('CERTIFIED THAT ALL THE ABOVE MENTIONED ACCOUNTS ARE OPENED AT BRANCH OFFICE AND NOT THROUGH ANY SAS AGENTS.', 14, yPos);
+  yPos += 6;
+  doc.text('CERTIFIED THAT INCENTIVE FOR ABOVE MENTIONED ACCOUNTS ARE NOT TAKEN EARLIER.', 14, yPos);
+  yPos += 6;
+  doc.text(`PLEASE GIVE THE ACCEPTANCE OF INCENTIVE AMOUNT RS :- ${totalIncentive}`, 14, yPos);
+  yPos += 6;
+  doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : ''}`, 14, yPos);
   
   yPos += 12;
-  doc.text('Incentive amount of RS :-', 14, yPos);
+  doc.text('SIGNATURE OF BPM _____________________ BO', 196, yPos, { align: 'right' });
+  
+  yPos += 8;
+  doc.text(`ACCEPTANCE GRANTED FOR THE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
+  yPos += 8;
+  doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '____________________________________'}`, 14, yPos);
+  doc.text('SIGNATURE OF SPM _____________________ SO', 196, yPos, { align: 'right' });
+  
   yPos += 10;
-  doc.text('Received Rupees (In Words) :- ___________________________', 14, yPos);
-  doc.text('Signature of BPM _____________________ BO', 196, yPos, { align: 'right' });
+  doc.text(`INCENTIVE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
+  yPos += 8;
+  doc.text(`RECEIVED RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '___________________________'}`, 14, yPos);
+  doc.text('SIGNATURE OF BPM _____________________ BO', 196, yPos, { align: 'right' });
 
+  return doc;
+}
+
+export function downloadPDF(bill: TDBillDetails) {
+  const doc = generatePDFDocument(bill);
   doc.save(`TD_Commission_Bill_${bill.month}_${bill.year}.pdf`);
+}
+
+export function getPDFBlobURL(bill: TDBillDetails): string {
+  const doc = generatePDFDocument(bill);
+  const blob = doc.output('blob');
+  return URL.createObjectURL(blob);
 }

@@ -1,37 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { getBillsFromFirestore, updateBillStatus, deleteBill } from '../services';
+import { subscribeToBillsFromFirestore, updateBillStatus, deleteBill } from '../services';
 import { TDBillDetails } from '../types';
-import { Check, X, FileText, Download, Trash2 } from 'lucide-react';
+import { Check, X, FileText, Download, Trash2, Eye } from 'lucide-react';
 import { downloadCSV } from '../utils';
-import { downloadPDF } from '../pdf';
+import { downloadPDF, getPDFBlobURL } from '../pdf';
 import { auth } from '../firebase';
 
 export default function AdminPortal() {
   const [bills, setBills] = useState<TDBillDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBills();
+    const unsubscribe = subscribeToBillsFromFirestore(
+      undefined,
+      undefined,
+      (data) => {
+        setBills(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, []);
-
-  const loadBills = async () => {
-    setLoading(true);
-    const data = await getBillsFromFirestore();
-    setBills(data);
-    setLoading(false);
-  };
 
   const handleStatusUpdate = async (billId: string, status: 'Approved' | 'Rejected') => {
     if (confirm(`Are you sure you want to mark this bill as ${status}?`)) {
       await updateBillStatus(billId, status);
-      await loadBills(); // Reload to get updated data
     }
   };
 
   const handleDelete = async (billId: string) => {
     if (confirm('Are you sure you want to permanently delete this bill?')) {
       await deleteBill(billId);
-      await loadBills();
     }
   };
 
@@ -91,6 +95,9 @@ export default function AdminPortal() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button onClick={() => setPreviewUrl(getPDFBlobURL(bill))} className="text-blue-600 hover:text-blue-800 p-1 bg-blue-50 hover:bg-blue-100 rounded" title="Preview PDF">
+                          <Eye size={18} />
+                        </button>
                         <button onClick={() => downloadPDF(bill)} className="text-indigo-600 hover:text-indigo-800 p-1 bg-indigo-50 hover:bg-indigo-100 rounded" title="Download PDF">
                           <Download size={18} />
                         </button>
@@ -116,6 +123,22 @@ export default function AdminPortal() {
           </div>
         )}
       </div>
+
+      {previewUrl && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h3 className="font-bold text-slate-800 text-lg">Bill Preview</h3>
+              <button onClick={() => setPreviewUrl(null)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 bg-slate-100 p-4">
+              <iframe src={previewUrl} className="w-full h-full rounded shadow-sm border border-slate-200 bg-white" title="PDF Preview" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
