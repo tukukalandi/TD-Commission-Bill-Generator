@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Bill": {
+      "title": "Commission Bill",
+      "description": "A monthly TD commission bill",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bo": { "type": "string" },
+        "so": { "type": "string" },
+        "ho": { "type": "string" },
+        "month": { "type": "string" },
+        "year": { "type": "string" },
+        "dateString": { "type": "string" },
+        "entriesData": { "type": "string", "description": "JSON string of entries" },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "updatedAt": { "type": "number", "description": "Timestamp" }
+      },
+      "required": ["userId", "bo", "so", "ho", "month", "year", "dateString", "entriesData", "createdAt", "updatedAt"]
+    },
+    "UserSettings": {
+       "title": "User Settings",
+       "description": "User specific application settings",
+       "type": "object",
+       "properties": {
+          "userId": { "type": "string" },
+          "spreadsheetId": { "type": "string" }
+       },
+       "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "bills/{billId}": {
+      "schema": { "$ref": "#/entities/Bill" },
+      "description": "Stores user generated commission bills."
+    },
+    "userSettings/{userId}": {
+      "schema": { "$ref": "#/entities/UserSettings" },
+      "description": "Stores user settings like Google Sheet ID"
+    }
+  }
+}

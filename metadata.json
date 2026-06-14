@@ -1,0 +1,6 @@
+{
+  "name": "TD Commission Bill Generator",
+  "description": "Generate monthly commission statements for BPMs based on TD deposits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
