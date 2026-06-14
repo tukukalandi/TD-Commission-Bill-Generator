@@ -45,24 +45,33 @@ export async function saveBillToFirestore(bill: TDBillDetails) {
   const now = Date.now();
   const entriesData = JSON.stringify(bill.entries);
   
-  const data = {
-    userId: auth.currentUser.uid,
-    bo: bill.bo,
-    so: bill.so,
-    ho: bill.ho,
-    month: bill.month,
-    year: bill.year,
-    dateString: bill.dateString,
-    entriesData: entriesData,
-    status: bill.status || 'Pending',
-    createdAt: bill.createdAt || now,
-    updatedAt: now,
-  };
-  
   try {
     if (bill.id) {
-       await updateDoc(doc(db, 'bills', bill.id), data);
+       const updateData = {
+         bo: bill.bo,
+         so: bill.so,
+         ho: bill.ho,
+         month: bill.month,
+         year: bill.year,
+         dateString: bill.dateString,
+         entriesData: entriesData,
+         updatedAt: now,
+       };
+       await updateDoc(doc(db, 'bills', bill.id), updateData);
     } else {
+       const data = {
+         userId: auth.currentUser.uid,
+         bo: bill.bo,
+         so: bill.so,
+         ho: bill.ho,
+         month: bill.month,
+         year: bill.year,
+         dateString: bill.dateString,
+         entriesData: entriesData,
+         status: bill.status || 'Pending',
+         createdAt: bill.createdAt || now,
+         updatedAt: now,
+       };
        const billId = Math.random().toString(36).substring(2, 15);
        await setDoc(doc(db, 'bills', billId), data);
     }

@@ -172,7 +172,7 @@ export default function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
         {/* Header */}
-        <header className="bg-red-700 text-white shadow-md sticky top-0 z-10 flex flex-col">
+        <header className="bg-red-700 text-white shadow-md sticky top-0 z-10 flex flex-col print:hidden">
           <div className="flex justify-between items-center p-3 sm:p-4 gap-2">
             
             {/* Left side: Title */}
@@ -220,7 +220,7 @@ export default function App() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-red-700 py-4 mt-auto text-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <footer className="bg-red-700 py-4 mt-auto text-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] print:hidden">
           <p className="text-sm text-red-50 font-medium">Prepared by Kalandi Charan Sahoo, PA, Dhenkanal RS SO</p>
         </footer>
       </div>

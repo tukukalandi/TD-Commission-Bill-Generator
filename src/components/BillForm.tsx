@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, DownloadCloud, CloudUpload, FileDown } from 'lucide-react';
+import { Plus, Trash2, Save, DownloadCloud, CloudUpload, FileDown, Printer } from 'lucide-react';
 import { TDBillDetails, TDAccountEntry } from '../types';
 import { generateId } from '../utils';
 import { saveBillToFirestore, getUserSettings } from '../services';
@@ -119,7 +119,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 print:hidden">
         <div>
           <h2 className="text-lg font-bold text-slate-800">Bill Editor</h2>
           <p className="text-sm text-slate-500">Fill in the details for the monthly commission bill.</p>
@@ -140,10 +140,17 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             <FileDown size={18} />
             Export PDF
           </button>
+          <button 
+            onClick={() => window.print()}
+            className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md font-medium shadow transition flex items-center gap-2"
+          >
+            <Printer size={18} />
+            Print to PDF
+          </button>
         </div>
       </div>
 
-      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:border-none print:shadow-none">
         <div className="bg-slate-100/50 px-6 py-4 border-b border-slate-200">
           <h2 className="text-lg font-semibold text-slate-800">Office Details</h2>
         </div>
@@ -220,8 +227,8 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         </div>
       </section>
 
-      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-100/50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:border-none print:shadow-none print:mt-4">
+        <div className="bg-slate-100/50 px-6 py-4 border-b border-slate-200 flex justify-between items-center print:hidden">
           <h2 className="text-lg font-semibold text-slate-800">Deposit Accounts</h2>
           <button 
             onClick={addEntry}
@@ -233,7 +240,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         </div>
         
         {/* Mobile View */}
-        <div className="block md:hidden space-y-4 p-4 bg-slate-50/50">
+        <div className="block md:hidden print:hidden space-y-4 p-4 bg-slate-50/50">
           {details.entries.map((entry, index) => (
             <div key={entry.id} className="bg-white border border-slate-200 rounded-lg p-4 space-y-3 relative shadow-sm">
               <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-2">
@@ -347,7 +354,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
           </div>
         </div>
         
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block print:block overflow-x-auto print:overflow-visible w-full">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold border-b border-slate-200">
               <tr>
@@ -359,7 +366,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                 <th className="px-4 py-3 w-32">Term</th>
                 <th className="px-4 py-3 w-32">Rate (%)</th>
                 <th className="px-4 py-3 w-32">Incentive Amt</th>
-                <th className="px-4 py-3 w-12"></th>
+                <th className="px-4 py-3 w-12 print:hidden"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -437,7 +444,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white font-medium text-right"
                     />
                   </td>
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-4 py-2 text-center print:hidden">
                     <button 
                       onClick={() => removeEntry(entry.id)}
                       className="text-slate-400 hover:text-red-500 p-1.5 rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition"
@@ -461,13 +468,13 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                 <td className="px-4 py-4 text-right font-bold text-red-700 bg-red-50/50 border-r border-slate-200/50">
                   {totalIncentive > 0 ? `₹${totalIncentive.toLocaleString()}` : '-'}
                 </td>
-                <td></td>
+                <td className="print:hidden"></td>
               </tr>
             </tfoot>
           </table>
         </div>
         
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-center">
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-center print:hidden">
           <button 
             onClick={addEntry}
             className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-300 hover:border-slate-400 px-4 py-2 rounded-md shadow-sm transition"

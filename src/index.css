@@ -27,4 +27,18 @@
     size: A4 portrait;
     margin: 15mm;
   }
+  
+  /* Print friendly inputs */
+  input, select, textarea {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    outline: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  button {
+    display: none !important;
+  }
 }
