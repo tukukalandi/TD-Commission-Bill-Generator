@@ -173,7 +173,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
         {/* Header */}
         <header className="bg-red-700 text-white shadow-md sticky top-0 z-10 flex flex-col print:hidden">
-          <div className="flex justify-between items-center p-3 sm:p-4 gap-2">
+          <div className="flex justify-between items-center px-1 py-3 sm:px-2 sm:py-4 gap-2">
             
             {/* Left side: Title */}
             <div className="flex items-center gap-3 min-w-0">
@@ -208,7 +208,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 flex-1">
+        <main className="w-full py-8 flex-1">
           <Routes>
             <Route path="/" element={<BillForm />} />
             <Route path="/create" element={<BillForm />} />
