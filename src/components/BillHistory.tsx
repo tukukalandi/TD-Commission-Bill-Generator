@@ -83,7 +83,7 @@ export default function BillHistory() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left min-w-[600px]">
-            <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold border-b border-slate-200">
+            <thead className="bg-slate-100 text-xs text-slate-700 uppercase font-bold border-b border-slate-200">
               <tr>
                 <th className="px-6 py-3">Office Info</th>
                 <th className="px-6 py-3">Month / Year</th>
@@ -97,13 +97,13 @@ export default function BillHistory() {
               {bills.map(bill => (
                 <tr key={bill.id} className="hover:bg-slate-50/50">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-slate-800">BO: {bill.bo || 'N/A'}</div>
-                    <div className="text-xs text-slate-500">SO: {bill.so || 'N/A'}</div>
+                    <div className="font-bold text-slate-900">BO: {bill.bo || 'N/A'}</div>
+                    <div className="text-xs text-slate-600 font-medium">SO: {bill.so || 'N/A'}</div>
                   </td>
-                  <td className="px-6 py-4 font-medium">
+                  <td className="px-6 py-4 font-bold text-slate-900">
                     {bill.month || '-'} {bill.year || '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 font-medium text-slate-800">
                     {bill.dateString}
                   </td>
                   <td className="px-6 py-4">

@@ -93,31 +93,32 @@ export function generatePDFDocument(bill: TDBillDetails) {
   }
 
   // Signatures & Certifications Area
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   
-  doc.text('CERTIFIED THAT ALL THE ABOVE MENTIONED ACCOUNTS ARE OPENED AT BRANCH OFFICE AND NOT THROUGH ANY SAS AGENTS.', 14, yPos);
-  yPos += 6;
+  doc.text('CERTIFIED THAT ALL THE ABOVE MENTIONED ACCOUNTS ARE OPENED AT BRANCH OFFICE AND NOT THROUGH ANY SAS AGENTS.', 14, yPos, { maxWidth: 182 });
+  yPos += 10;
   doc.text('CERTIFIED THAT INCENTIVE FOR ABOVE MENTIONED ACCOUNTS ARE NOT TAKEN EARLIER.', 14, yPos);
-  yPos += 6;
+  yPos += 8;
+  doc.setFontSize(9);
   doc.text(`PLEASE GIVE THE ACCEPTANCE OF INCENTIVE AMOUNT RS :- ${totalIncentive}`, 14, yPos);
   yPos += 6;
   doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : ''}`, 14, yPos);
   
   yPos += 12;
-  doc.text('SIGNATURE OF BPM _____________________ BO', 196, yPos, { align: 'right' });
+  doc.text(`SIGNATURE OF BPM, ${bill.bo ? bill.bo.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
   
   yPos += 8;
   doc.text(`ACCEPTANCE GRANTED FOR THE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
   yPos += 8;
   doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '____________________________________'}`, 14, yPos);
-  doc.text('SIGNATURE OF SPM _____________________ SO', 196, yPos, { align: 'right' });
+  doc.text(`SIGNATURE OF SPM, ${bill.so ? bill.so.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
   
   yPos += 10;
   doc.text(`INCENTIVE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
   yPos += 8;
   doc.text(`RECEIVED RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '___________________________'}`, 14, yPos);
-  doc.text('SIGNATURE OF BPM _____________________ BO', 196, yPos, { align: 'right' });
+  doc.text(`SIGNATURE OF BPM, ${bill.bo ? bill.bo.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
 
   return doc;
 }

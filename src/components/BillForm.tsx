@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, DownloadCloud, CloudUpload, FileDown, Printer } from 'lucide-react';
+import { Plus, Trash2, Save, DownloadCloud, CloudUpload, FileDown } from 'lucide-react';
 import { TDBillDetails, TDAccountEntry } from '../types';
 import { generateId } from '../utils';
 import { saveBillToFirestore, getUserSettings } from '../services';
@@ -47,11 +47,27 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
       entries: prev.entries.map(e => {
         if (e.id === id) {
           const updated = { ...e, [field]: value };
-          if ((field === 'depositAmount' || field === 'rateOfIncentive') && 
-               updated.depositAmount !== '' && updated.rateOfIncentive !== '') {
-            const calculated = (Number(updated.depositAmount) * Number(updated.rateOfIncentive)) / 100;
-            if (!isNaN(calculated)) {
-               updated.incentiveAmount = calculated;
+          
+          if (field === 'termOfDeposit') {
+            if (value === '1 Year') {
+              updated.rateOfIncentive = 0.5;
+            } else if (value === '2 Year' || value === '3 Year') {
+              updated.rateOfIncentive = 1;
+            } else if (value === '5 Year') {
+              updated.rateOfIncentive = 2;
+            } else {
+              updated.rateOfIncentive = '';
+            }
+          }
+
+          if ((field === 'depositAmount' || field === 'rateOfIncentive' || field === 'termOfDeposit')) {
+            if (updated.depositAmount !== '' && updated.rateOfIncentive !== '') {
+              const calculated = (Number(updated.depositAmount) * Number(updated.rateOfIncentive)) / 100;
+              if (!isNaN(calculated)) {
+                 updated.incentiveAmount = calculated;
+              }
+            } else {
+              updated.incentiveAmount = '';
             }
           }
           return updated;
@@ -144,7 +160,6 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             onClick={() => window.print()}
             className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md font-medium shadow transition flex items-center gap-2"
           >
-            <Printer size={18} />
             Print to PDF
           </button>
         </div>
@@ -156,11 +171,11 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Branch Office (BO)</label>
+            <label className="text-xs font-bold text-slate-700 uppercase">Branch Office (BO)</label>
             <select 
               value={details.bo} 
               onChange={(e) => handleHeaderChange('bo', e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+              className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-slate-900 font-medium"
             >
               <option value="">Select BO</option>
               {branchOffices.map(bo => (
@@ -169,34 +184,34 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Sub Office (SO)</label>
+            <label className="text-xs font-bold text-slate-700 uppercase">Sub Office (SO)</label>
             <input 
               type="text" 
               value={details.so} 
               onChange={(e) => handleHeaderChange('so', e.target.value)}
               placeholder="Name of SO"
               readOnly
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50 text-slate-700 font-medium cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Head Office (HO)</label>
+            <label className="text-xs font-bold text-slate-700 uppercase">Head Office (HO)</label>
             <input 
               type="text" 
               value={details.ho} 
               onChange={(e) => handleHeaderChange('ho', e.target.value)}
               placeholder="Name of HO"
               readOnly
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50 text-slate-700 font-medium cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">For Month Of</label>
+            <label className="text-xs font-bold text-slate-700 uppercase">For Month Of</label>
             <div className="flex gap-2">
               <select 
                 value={details.month} 
                 onChange={(e) => handleHeaderChange('month', e.target.value)}
-                className="w-full border border-slate-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+                className="w-full border border-slate-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-slate-900 font-medium"
               >
                 <option value="">Month</option>
                 {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
@@ -206,7 +221,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
               <select 
                 value={details.year} 
                 onChange={(e) => handleHeaderChange('year', e.target.value)}
-                className="w-full border border-slate-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+                className="w-full border border-slate-300 rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-slate-900 font-medium"
               >
                 <option value="">Year</option>
                 {Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
@@ -216,12 +231,12 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Date</label>
+            <label className="text-xs font-bold text-slate-700 uppercase">Date</label>
             <input 
               type="date" 
               value={details.dateString} 
               onChange={(e) => handleHeaderChange('dateString', e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-slate-900 font-medium"
             />
           </div>
         </div>
@@ -256,55 +271,55 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
               
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Account No</label>
+                  <label className="text-xs text-slate-700 font-bold">Account No</label>
                   <input 
                     type="text" 
                     value={entry.accountNo} 
                     onChange={(e) => handleEntryChange(entry.id, 'accountNo', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 text-slate-900 font-medium"
                     placeholder="Acc No."
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">PR No</label>
+                  <label className="text-xs text-slate-700 font-bold">PR No</label>
                   <input 
                     type="text" 
                     value={entry.prNo} 
                     onChange={(e) => handleEntryChange(entry.id, 'prNo', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 text-slate-900 font-medium"
                     placeholder="PR No."
                   />
                 </div>
               </div>
               
               <div className="space-y-1 text-sm">
-                <label className="text-xs text-slate-500 font-medium">Name of Depositor</label>
+                <label className="text-xs text-slate-700 font-bold">Name of Depositor</label>
                 <input 
                   type="text" 
                   value={entry.depositorName} 
                   onChange={(e) => handleEntryChange(entry.id, 'depositorName', e.target.value)}
-                  className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 text-slate-900 font-medium"
                   placeholder="Full Name"
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Deposit Amt</label>
+                  <label className="text-xs text-slate-700 font-bold">Deposit Amt</label>
                   <input 
                     type="number" 
                     value={entry.depositAmount} 
                     onChange={(e) => handleEntryChange(entry.id, 'depositAmount', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 text-slate-900 font-medium"
                     placeholder="0"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Term</label>
+                  <label className="text-xs text-slate-700 font-bold">Term</label>
                   <select 
                     value={entry.termOfDeposit} 
                     onChange={(e) => handleEntryChange(entry.id, 'termOfDeposit', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-white text-slate-900 font-medium"
                   >
                     <option value="">Select...</option>
                     <option value="1 Year">1 Year</option>
@@ -317,24 +332,24 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
               
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Rate (%)</label>
+                  <label className="text-xs text-slate-700 font-bold">Rate (%)</label>
                   <input 
                     type="number" 
                     step="0.1"
                     value={entry.rateOfIncentive} 
                     onChange={(e) => handleEntryChange(entry.id, 'rateOfIncentive', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 text-slate-900 font-medium"
                     placeholder="%"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-500 font-medium">Incentive Amt</label>
+                  <label className="text-xs text-slate-700 font-bold">Incentive Amt</label>
                   <input 
                     type="number" 
                     step="0.01"
                     value={entry.incentiveAmount} 
                     onChange={(e) => handleEntryChange(entry.id, 'incentiveAmount', e.target.value)}
-                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 font-medium text-red-700"
+                    className="w-full border border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 font-bold text-red-700"
                     placeholder="0.00"
                   />
                 </div>
@@ -356,7 +371,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         
         <div className="hidden md:block print:block overflow-x-auto print:overflow-visible w-full">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold border-b border-slate-200">
+            <thead className="bg-slate-100 text-xs text-slate-700 uppercase font-bold border-b border-slate-200">
               <tr>
                 <th className="px-4 py-3 w-12 text-center">Sr.</th>
                 <th className="px-4 py-3">Account No</th>
@@ -372,7 +387,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             <tbody className="divide-y divide-slate-100">
               {details.entries.map((entry, index) => (
                 <tr key={entry.id} className="hover:bg-slate-50/50 group">
-                  <td className="px-4 py-3 text-center text-slate-500 font-medium">
+                  <td className="px-4 py-3 text-center text-slate-700 font-medium">
                     {index + 1}
                   </td>
                   <td className="px-4 py-2">
@@ -381,7 +396,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.accountNo} 
                       onChange={(e) => handleEntryChange(entry.id, 'accountNo', e.target.value)}
                       placeholder="Acc No."
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -390,7 +405,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.prNo} 
                       onChange={(e) => handleEntryChange(entry.id, 'prNo', e.target.value)}
                       placeholder="PR"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -399,7 +414,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.depositorName} 
                       onChange={(e) => handleEntryChange(entry.id, 'depositorName', e.target.value)}
                       placeholder="Full Name"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -408,14 +423,14 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.depositAmount} 
                       onChange={(e) => handleEntryChange(entry.id, 'depositAmount', e.target.value)}
                       placeholder="0"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold"
                     />
                   </td>
                   <td className="px-4 py-2">
                     <select 
                       value={entry.termOfDeposit} 
                       onChange={(e) => handleEntryChange(entry.id, 'termOfDeposit', e.target.value)}
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
                     >
                       <option value="">Select...</option>
                       <option value="1 Year">1 Year</option>
@@ -431,7 +446,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.rateOfIncentive} 
                       onChange={(e) => handleEntryChange(entry.id, 'rateOfIncentive', e.target.value)}
                       placeholder="%"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -441,7 +456,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       value={entry.incentiveAmount} 
                       onChange={(e) => handleEntryChange(entry.id, 'incentiveAmount', e.target.value)}
                       placeholder="0.00"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white font-medium text-right"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white font-bold text-right text-red-700"
                     />
                   </td>
                   <td className="px-4 py-2 text-center print:hidden">
@@ -482,6 +497,17 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             <Plus size={16} />
             Add Another Account
           </button>
+        </div>
+
+        {/* Print Signature Area */}
+        <div className="hidden print:block mt-32 px-8 pb-8">
+          <div className="flex justify-end">
+            <div className="text-center relative">
+              <div className="absolute -top-12 left-0 right-0 border-t border-dashed border-slate-400"></div>
+              <p className="font-bold text-slate-800 text-base">Signature of BPM, {details.bo ? `${details.bo}` : '________________'}</p>
+              <p className="font-bold text-slate-800 text-base mt-1">Signature of SPM, {details.so ? `${details.so}` : '________________'}</p>
+            </div>
+          </div>
         </div>
       </section>
     </div>
