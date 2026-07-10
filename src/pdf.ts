@@ -49,8 +49,8 @@ export function generatePDFDocument(bill: TDBillDetails) {
     entry.incentiveAmount
   ]);
   
-  // Pad table to 20 rows if needed
-  const emptyRowsCount = Math.max(0, 20 - bill.entries.length);
+  // Pad table to 10 rows if needed
+  const emptyRowsCount = Math.max(0, 12 - bill.entries.length);
   for (let i = 0; i < emptyRowsCount; i++) {
     tableData.push(['', '', '', '', '', '', '', '']);
   }
@@ -67,7 +67,7 @@ export function generatePDFDocument(bill: TDBillDetails) {
     head: [['SR NO', 'ACCOUNT NO', 'PR NO', 'NAME OF DEPOSITOR', 'DEPOSIT AMOUNT', 'TERM OF DEPOSIT', 'RATE OF INCENTIVE', 'INCENTIVE AMOUNT']],
     body: tableData,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 1.5, minCellHeight: 7 },
+    styles: { fontSize: 8, cellPadding: 1, minCellHeight: 6 },
     headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5, fontStyle: 'bold' },
     bodyStyles: { textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
     columnStyles: {
@@ -97,26 +97,26 @@ export function generatePDFDocument(bill: TDBillDetails) {
   doc.setFont('helvetica', 'bold');
   
   doc.text('CERTIFIED THAT ALL THE ABOVE MENTIONED ACCOUNTS ARE OPENED AT BRANCH OFFICE AND NOT THROUGH ANY SAS AGENTS.', 14, yPos, { maxWidth: 182 });
-  yPos += 10;
-  doc.text('CERTIFIED THAT INCENTIVE FOR ABOVE MENTIONED ACCOUNTS ARE NOT TAKEN EARLIER.', 14, yPos);
   yPos += 8;
+  doc.text('CERTIFIED THAT INCENTIVE FOR ABOVE MENTIONED ACCOUNTS ARE NOT TAKEN EARLIER.', 14, yPos);
+  yPos += 6;
   doc.setFontSize(9);
   doc.text(`PLEASE GIVE THE ACCEPTANCE OF INCENTIVE AMOUNT RS :- ${totalIncentive}`, 14, yPos);
-  yPos += 6;
+  yPos += 5;
   doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : ''}`, 14, yPos);
   
-  yPos += 12;
+  yPos += 10;
   doc.text(`SIGNATURE OF BPM, ${bill.bo ? bill.bo.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
   
-  yPos += 8;
+  yPos += 6;
   doc.text(`ACCEPTANCE GRANTED FOR THE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
-  yPos += 8;
+  yPos += 6;
   doc.text(`RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '____________________________________'}`, 14, yPos);
   doc.text(`SIGNATURE OF SPM, ${bill.so ? bill.so.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
   
-  yPos += 10;
-  doc.text(`INCENTIVE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
   yPos += 8;
+  doc.text(`INCENTIVE AMOUNT OF RS :- ${totalIncentive}`, 14, yPos);
+  yPos += 6;
   doc.text(`RECEIVED RUPEES (IN WORDS) :- ${totalIncentive > 0 ? numberToWords(totalIncentive).toUpperCase() : '___________________________'}`, 14, yPos);
   doc.text(`SIGNATURE OF BPM, ${bill.bo ? bill.bo.toUpperCase() : '_____________________'}`, 196, yPos, { align: 'right' });
 
