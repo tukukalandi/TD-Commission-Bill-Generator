@@ -370,67 +370,73 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         </div>
         
         <div className="hidden md:block print:block overflow-x-auto print:overflow-visible w-full">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-100 text-xs text-slate-700 uppercase font-bold border-b border-slate-200">
+          <table className="w-full text-sm print:text-xs text-left">
+            <thead className="bg-slate-100 text-xs print:text-[10px] text-slate-700 uppercase font-bold border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3 w-12 text-center">Sr.</th>
-                <th className="px-4 py-3">Account No</th>
-                <th className="px-4 py-3 w-28">PR No</th>
-                <th className="px-4 py-3 min-w-[200px]">Name of Depositor</th>
-                <th className="px-4 py-3 w-32">Deposit Amt</th>
-                <th className="px-4 py-3 w-32">Term</th>
-                <th className="px-4 py-3 w-32">Rate (%)</th>
-                <th className="px-4 py-3 w-32">Incentive Amt</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-12 text-center">Sr.</th>
+                <th className="px-4 py-3 print:px-2 print:py-1">Account No</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-28">PR No</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 min-w-[200px] print:min-w-[150px]">Name of Depositor</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-32 print:w-24">Deposit Amt</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-32 print:w-20">Term</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-32 print:w-20">Rate (%)</th>
+                <th className="px-4 py-3 print:px-2 print:py-1 w-32 print:w-24">Incentive Amt</th>
                 <th className="px-4 py-3 w-12 print:hidden"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {details.entries.map((entry, index) => (
-                <tr key={entry.id} className="hover:bg-slate-50/50 group">
-                  <td className="px-4 py-3 text-center text-slate-700 font-medium">
+                <tr key={entry.id} className="hover:bg-slate-50/50 group break-inside-avoid">
+                  <td className="px-4 py-3 print:px-2 print:py-1 text-center text-slate-700 font-medium">
                     {index + 1}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <input 
                       type="text" 
                       value={entry.accountNo} 
                       onChange={(e) => handleEntryChange(entry.id, 'accountNo', e.target.value)}
                       placeholder="Acc No."
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium print:text-xs"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <input 
                       type="text" 
                       value={entry.prNo} 
                       onChange={(e) => handleEntryChange(entry.id, 'prNo', e.target.value)}
                       placeholder="PR"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium print:text-xs"
                     />
                   </td>
-                  <td className="px-4 py-2">
-                    <input 
-                      type="text" 
+                  <td className="px-4 py-2 print:px-2 print:py-1">
+                    <textarea 
                       value={entry.depositorName} 
                       onChange={(e) => handleEntryChange(entry.id, 'depositorName', e.target.value)}
                       placeholder="Full Name"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
+                      rows={1}
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium print:text-xs resize-none overflow-hidden"
+                      style={{ height: 'auto', minHeight: '32px' }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = `${target.scrollHeight}px`;
+                      }}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <input 
                       type="number" 
                       value={entry.depositAmount} 
                       onChange={(e) => handleEntryChange(entry.id, 'depositAmount', e.target.value)}
                       placeholder="0"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold print:text-xs"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <select 
                       value={entry.termOfDeposit} 
                       onChange={(e) => handleEntryChange(entry.id, 'termOfDeposit', e.target.value)}
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-slate-900 font-medium print:text-xs"
                     >
                       <option value="">Select...</option>
                       <option value="1 Year">1 Year</option>
@@ -439,24 +445,24 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
                       <option value="5 Year">5 Year</option>
                     </select>
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <input 
                       type="number" 
                       step="0.1"
                       value={entry.rateOfIncentive} 
                       onChange={(e) => handleEntryChange(entry.id, 'rateOfIncentive', e.target.value)}
                       placeholder="%"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white text-right text-slate-900 font-bold print:text-xs"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 print:px-2 print:py-1">
                     <input 
                       type="number" 
                       step="0.01"
                       value={entry.incentiveAmount} 
                       onChange={(e) => handleEntryChange(entry.id, 'incentiveAmount', e.target.value)}
                       placeholder="0.00"
-                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white font-bold text-right text-red-700"
+                      className="w-full border border-transparent hover:border-slate-300 focus:border-red-500 rounded px-2 py-1.5 print:p-0 focus:outline-none focus:ring-1 focus:ring-red-500 bg-transparent focus:bg-white font-bold text-right text-red-700 print:text-xs"
                     />
                   </td>
                   <td className="px-4 py-2 text-center print:hidden">
@@ -473,14 +479,14 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
             </tbody>
             <tfoot className="bg-slate-50 border-t border-slate-200">
               <tr>
-                <td colSpan={4} className="px-4 py-4 text-right font-semibold text-slate-700">
+                <td colSpan={4} className="px-4 py-4 print:px-2 print:py-2 text-right font-semibold text-slate-700">
                   Grand Total:
                 </td>
-                <td className="px-4 py-4 text-right font-bold text-slate-900 border-x border-slate-200/50">
+                <td className="px-4 py-4 print:px-2 print:py-2 text-right font-bold text-slate-900 border-x border-slate-200/50">
                   {totalDeposit > 0 ? `₹${totalDeposit.toLocaleString()}` : '-'}
                 </td>
-                <td colSpan={2} className="px-4 py-4 border-r border-slate-200/50"></td>
-                <td className="px-4 py-4 text-right font-bold text-red-700 bg-red-50/50 border-r border-slate-200/50">
+                <td colSpan={2} className="px-4 py-4 print:px-2 print:py-2 border-r border-slate-200/50"></td>
+                <td className="px-4 py-4 print:px-2 print:py-2 text-right font-bold text-red-700 bg-red-50/50 border-r border-slate-200/50">
                   {totalIncentive > 0 ? `₹${totalIncentive.toLocaleString()}` : '-'}
                 </td>
                 <td className="print:hidden"></td>
@@ -500,7 +506,7 @@ export default function BillForm({ initialData }: { initialData?: TDBillDetails 
         </div>
 
         {/* Print Signature Area */}
-        <div className="hidden print:block mt-32 px-8 pb-8">
+        <div className="hidden print:block mt-16 px-8 pb-8 break-inside-avoid">
           <div className="flex justify-end">
             <div className="text-center relative">
               <div className="absolute -top-12 left-0 right-0 border-t border-dashed border-slate-400"></div>
