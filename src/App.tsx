@@ -17,6 +17,7 @@ import { auth } from './firebase';
 function Navigation() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+  const isAdmin = false; // We removed auth, but if you want to keep admin hardcoded or remove it, we can just hide it for now. Actually, let's keep it hidden.
 
   return (
     <nav className="flex gap-1 overflow-x-auto scrollbar-hide">
@@ -33,13 +34,6 @@ function Navigation() {
       >
         <History size={16} />
         History
-      </Link>
-      <Link 
-        to="/admin" 
-        className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium text-sm transition-colors whitespace-nowrap ${isActive('/admin') ? 'bg-slate-50 text-indigo-700 border-t-2 border-indigo-600' : 'text-red-100 hover:bg-red-800/50 hover:text-white'}`}
-      >
-        <ShieldCheck size={16} />
-        Admin
       </Link>
     </nav>
   );
@@ -101,8 +95,8 @@ export default function App() {
             <Route path="/" element={<BillForm />} />
             <Route path="/create" element={<BillForm />} />
             <Route path="/history" element={<BillHistory />} />
-            <Route path="/admin" element={<AdminPortal />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminPortal />} />
             <Route path="/view/:id" element={<EditViewLoader />} />
           </Routes>
         </main>
