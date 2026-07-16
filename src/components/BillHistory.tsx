@@ -17,23 +17,20 @@ export default function BillHistory() {
   const [appliedYearFilter, setAppliedYearFilter] = useState('');
   const [appliedBoFilter, setAppliedBoFilter] = useState('');
 
-  const [availableBOs, setAvailableBOs] = useState<string[]>([]);
-  const navigate = useNavigate();
+  const branchOffices = [
+    "Suakhaikateni B.O",
+    "Barada B.O",
+    "Chaulia B.O",
+    "Gengutia B.O",
+    "Kankadpal B.O",
+    "Korian B.O",
+    "Mahisapat B.O",
+    "Saptasajya B.O",
+    "Shankarpur B.O",
+    "Tarava B.O"
+  ];
 
-  useEffect(() => {
-    // Fetch unique BOs once for the dropdown
-    async function fetchBOs() {
-      const allBills = await getBillsFromFirestore();
-      const bos = new Set<string>();
-      allBills.forEach(b => {
-        if (b.bo && b.bo.trim() !== '') {
-          bos.add(b.bo.trim().toUpperCase());
-        }
-      });
-      setAvailableBOs(Array.from(bos).sort());
-    }
-    fetchBOs();
-  }, []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -80,7 +77,7 @@ export default function BillHistory() {
             className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white min-w-[150px] w-full sm:w-auto"
           >
             <option value="">All Branch Offices (BO)</option>
-            {availableBOs.map(bo => (
+            {branchOffices.map(bo => (
               <option key={bo} value={bo}>{bo}</option>
             ))}
           </select>
