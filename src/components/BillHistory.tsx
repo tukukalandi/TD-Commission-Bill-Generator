@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { subscribeToBillsFromFirestore, deleteBill, getBillsFromFirestore } from '../services';
+import { subscribeToBillsFromFirestore, deleteBill } from '../services';
 import { TDBillDetails } from '../types';
 import { Eye, Trash2, FileText, Search, Download, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,31 +11,13 @@ export default function BillHistory() {
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
-  const [boFilter, setBoFilter] = useState('');
-  const [availableBOs, setAvailableBOs] = useState<string[]>([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Fetch unique BOs once for the dropdown
-    async function fetchBOs() {
-      const allBills = await getBillsFromFirestore();
-      const bos = new Set<string>();
-      allBills.forEach(b => {
-        if (b.bo && b.bo.trim() !== '') {
-          bos.add(b.bo.trim().toUpperCase());
-        }
-      });
-      setAvailableBOs(Array.from(bos).sort());
-    }
-    fetchBOs();
-  }, []);
 
   useEffect(() => {
     setLoading(true);
     const unsubscribe = subscribeToBillsFromFirestore(
       monthFilter,
       yearFilter,
-      boFilter,
       (data) => {
         setBills(data);
         setLoading(false);
@@ -46,7 +28,7 @@ export default function BillHistory() {
       }
     );
     return () => unsubscribe();
-  }, [monthFilter, yearFilter, boFilter]);
+  }, [monthFilter, yearFilter]);
 
   const handleDelete = async (id?: string) => {
     if (!id) return;
@@ -62,17 +44,7 @@ export default function BillHistory() {
           <h2 className="text-lg font-bold text-slate-800">Bill History</h2>
           <p className="text-sm text-slate-500">View and manage previously generated bills.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <select 
-            value={boFilter} 
-            onChange={(e) => setBoFilter(e.target.value)}
-            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white min-w-[150px]"
-          >
-            <option value="">All Branch Offices (BO)</option>
-            {availableBOs.map(bo => (
-              <option key={bo} value={bo}>{bo}</option>
-            ))}
-          </select>
+        <div className="flex gap-2">
           <select 
             value={monthFilter} 
             onChange={(e) => setMonthFilter(e.target.value)}
@@ -103,7 +75,7 @@ export default function BillHistory() {
           <div className="p-12 text-center flex flex-col items-center">
             <FileText size={48} className="text-slate-300 mb-4" />
             <h3 className="text-lg font-medium text-slate-700">No bills found</h3>
-            <p className="text-slate-500 mb-6">No commission bills matched your filters.</p>
+            <p className="text-slate-500 mb-6">You haven't saved any commission bills yet.</p>
             <button onClick={() => navigate('/create')} className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-500 transition">
               Create New Bill
             </button>

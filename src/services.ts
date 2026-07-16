@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { collection, doc, setDoc, getDoc, getDocs, query, where, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { TDBillDetails } from './types';
 
@@ -23,7 +23,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: 'anonymous'
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
     },
     operationType,
     path
@@ -33,6 +41,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 }
 
 export async function saveBillToFirestore(bill: TDBillDetails) {
+  if (!auth.currentUser) throw new Error('Not logged in');
   const now = Date.now();
   const entriesData = JSON.stringify(bill.entries);
   
@@ -51,7 +60,7 @@ export async function saveBillToFirestore(bill: TDBillDetails) {
        await updateDoc(doc(db, 'bills', bill.id), updateData);
     } else {
        const data = {
-         userId: 'anonymous',
+         userId: auth.currentUser.uid,
          bo: bill.bo,
          so: bill.so,
          ho: bill.ho,
@@ -72,6 +81,7 @@ export async function saveBillToFirestore(bill: TDBillDetails) {
 }
 
 export async function updateBillStatus(billId: string, status: 'Pending' | 'Approved' | 'Rejected') {
+  if (!auth.currentUser) throw new Error('Not logged in');
   try {
     await updateDoc(doc(db, 'bills', billId), {
       status,
@@ -83,8 +93,11 @@ export async function updateBillStatus(billId: string, status: 'Pending' | 'Appr
 }
 
 export async function getBillsFromFirestore(month?: string, year?: string): Promise<TDBillDetails[]> {
+  if (!auth.currentUser) return [];
+  const isAdmin = auth.currentUser.email === 'tukukalandi@gmail.com';
+  
   try {
-    const q = query(collection(db, 'bills'));
+    const q = isAdmin ? query(collection(db, 'bills')) : query(collection(db, 'bills'), where('userId', '==', auth.currentUser.uid));
     const snap = await getDocs(q);
     const bills = snap.docs.map(doc => {
       const data = doc.data();
@@ -123,16 +136,16 @@ export async function getBillsFromFirestore(month?: string, year?: string): Prom
 export function subscribeToBillsFromFirestore(
   month: string | undefined, 
   year: string | undefined, 
-  bo: string | undefined,
   onSnapshotCallback: (bills: TDBillDetails[]) => void, 
   onErrorCallback: (error: Error) => void
 ) {
-  
-  let q = query(collection(db, 'bills'));
-  if (bo && bo.trim() !== '') {
-    // If bo filter is provided, we can either filter in firestore or locally. Let's do it locally so it matches exact text ignoring case if we want, or exact match.
-    // Let's do local filter for simplicity and less indexing problems.
+  if (!auth.currentUser) {
+    onSnapshotCallback([]);
+    return () => {}; // return empty unsubscribe
   }
+  const isAdmin = auth.currentUser.email === 'tukukalandi@gmail.com';
+  
+  const q = isAdmin ? query(collection(db, 'bills')) : query(collection(db, 'bills'), where('userId', '==', auth.currentUser.uid));
   
   const unsubscribe = onSnapshot(q, (snap) => {
     const bills = snap.docs.map(doc => {
@@ -160,9 +173,6 @@ export function subscribeToBillsFromFirestore(
     if (year && year !== '') {
       filtered = filtered.filter(b => b.year === year);
     }
-    if (bo && bo.trim() !== '') {
-      filtered = filtered.filter(b => b.bo?.toLowerCase().includes(bo.toLowerCase()));
-    }
     
     onSnapshotCallback(filtered.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)));
   }, (error) => {
@@ -177,13 +187,34 @@ export function subscribeToBillsFromFirestore(
 }
 
 export async function getUserSettings() {
-  return null;
+  if (!auth.currentUser) return null;
+  try {
+    const docRef = doc(db, 'userSettings', auth.currentUser.uid);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data() as { spreadsheetId?: string };
+    }
+    return null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, 'userSettings');
+    return null;
+  }
 }
 
 export async function saveUserSettings(spreadsheetId: string) {
+  if (!auth.currentUser) return;
+  try {
+    await setDoc(doc(db, 'userSettings', auth.currentUser.uid), {
+      userId: auth.currentUser.uid,
+      spreadsheetId
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, 'userSettings');
+  }
 }
 
 export async function deleteBill(billId: string) {
+  if (!auth.currentUser) return;
   try {
     await deleteDoc(doc(db, 'bills', billId));
   } catch (error) {
