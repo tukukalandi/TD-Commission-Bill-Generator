@@ -12,6 +12,11 @@ export default function BillHistory() {
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   const [boFilter, setBoFilter] = useState('');
+  
+  const [appliedMonthFilter, setAppliedMonthFilter] = useState('');
+  const [appliedYearFilter, setAppliedYearFilter] = useState('');
+  const [appliedBoFilter, setAppliedBoFilter] = useState('');
+
   const [availableBOs, setAvailableBOs] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -33,9 +38,9 @@ export default function BillHistory() {
   useEffect(() => {
     setLoading(true);
     const unsubscribe = subscribeToBillsFromFirestore(
-      monthFilter,
-      yearFilter,
-      boFilter,
+      appliedMonthFilter,
+      appliedYearFilter,
+      appliedBoFilter,
       (data) => {
         setBills(data);
         setLoading(false);
@@ -46,7 +51,13 @@ export default function BillHistory() {
       }
     );
     return () => unsubscribe();
-  }, [monthFilter, yearFilter, boFilter]);
+  }, [appliedMonthFilter, appliedYearFilter, appliedBoFilter]);
+
+  const handleSearch = () => {
+    setAppliedMonthFilter(monthFilter);
+    setAppliedYearFilter(yearFilter);
+    setAppliedBoFilter(boFilter);
+  };
 
   const handleDelete = async (id?: string) => {
     if (!id) return;
@@ -62,11 +73,11 @@ export default function BillHistory() {
           <h2 className="text-lg font-bold text-slate-800">Bill History</h2>
           <p className="text-sm text-slate-500">View and manage previously generated bills.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center">
           <select 
             value={boFilter} 
             onChange={(e) => setBoFilter(e.target.value)}
-            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white min-w-[150px]"
+            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white min-w-[150px] w-full sm:w-auto"
           >
             <option value="">All Branch Offices (BO)</option>
             {availableBOs.map(bo => (
@@ -76,7 +87,7 @@ export default function BillHistory() {
           <select 
             value={monthFilter} 
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white w-full sm:w-auto"
           >
             <option value="">All Months</option>
             {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
@@ -86,13 +97,20 @@ export default function BillHistory() {
           <select 
             value={yearFilter} 
             onChange={(e) => setYearFilter(e.target.value)}
-            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+            className="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white w-full sm:w-auto"
           >
             <option value="">All Years</option>
             {Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
               <option key={y} value={y.toString()}>{y}</option>
             ))}
           </select>
+          <button
+            onClick={handleSearch}
+            className="flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition w-full sm:w-auto"
+          >
+            <Search size={16} />
+            <span className="sm:hidden">Search</span>
+          </button>
         </div>
       </div>
 
